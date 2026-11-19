@@ -34,12 +34,17 @@ Express validates requests and checks a short-lived cache marker. On a miss, it 
 
 ## Local development
 
-Run Redis and Temporal (including PostgreSQL) using Compose, then run the app locally:
+Choose one run mode at a time. For normal use, run the complete stack with the Docker Compose command above; Docker installs dependencies and builds the app inside its container. You do not also need to run `npm install` or `npm run dev`.
+
+For code changes with hot reload, run only Redis and Temporal in Docker, then run the Node app directly on your computer:
 
 ```sh
+docker compose up -d redis temporal-db temporal
 npm install
 cp .env.example .env
 npm run dev
 ```
 
-When running locally, the default service addresses in `.env.example` point to localhost. To simulate an outage in Compose, add `SUPPLIER_A_FAIL=true` or `SUPPLIER_B_FAIL=true` under the app service environment, then recreate the app with `docker compose up --build app`.
+When running the app locally, the default service addresses in `.env.example` point to the Docker services through localhost. Stop the development server with `Ctrl+C`; stop its supporting services with `docker compose down`.
+
+To simulate a supplier outage in the full Compose setup, add `SUPPLIER_A_FAIL=true` or `SUPPLIER_B_FAIL=true` under the app service environment, then recreate the app with `docker compose up --build app`.
