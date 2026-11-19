@@ -1,0 +1,76 @@
+{
+  "info": {
+    "name": "Hotel Aggregator API",
+    "description": "Hotel aggregation, Redis price filtering, health, and mock supplier endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:3000" }],
+  "item": [
+    { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/health" } },
+    { "name": "Hotels - Delhi", "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels?city=delhi" } },
+    { "name": "Hotels - Delhi price range", "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels?city=delhi&minPrice=5000&maxPrice=6000" } },
+    { "name": "Hotels - Unknown city", "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels?city=unknown" } },
+    { "name": "Hotels - Missing city (400)", "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels" } },
+    { "name": "Hotels - Invalid range (400)", "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels?city=delhi&minPrice=7000&maxPrice=5000" } },
+    {
+      "name": "Supplier A - Delhi (checks overlap)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/supplierA/hotels?city=delhi",
+        "event": [{
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Supplier A returns HTTP 200 and a JSON array', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "const offers = pm.response.json();",
+              "pm.test('Supplier A offers have the required hotel fields', function () {",
+              "  offers.forEach((hotel) => {",
+              "    ['hotelId', 'name', 'price', 'city', 'commissionPct'].forEach((field) => pm.expect(hotel).to.have.property(field));",
+              "  });",
+              "});",
+              "pm.test('Supplier A includes the shared Taj Hotel and Radison listings', function () {",
+              "  const names = offers.map((hotel) => hotel.name);",
+              "  pm.expect(names).to.include('Taj Hotel');",
+              "  pm.expect(names).to.include('Radison');",
+              "});"
+            ]
+          }
+        }]
+      }
+    },
+    {
+      "name": "Supplier B - Delhi (checks overlap)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/supplierB/hotels?city=delhi",
+        "event": [{
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Supplier B returns HTTP 200 and a JSON array', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "const offers = pm.response.json();",
+              "pm.test('Supplier B offers have the required hotel fields', function () {",
+              "  offers.forEach((hotel) => {",
+              "    ['hotelId', 'name', 'price', 'city', 'commissionPct'].forEach((field) => pm.expect(hotel).to.have.property(field));",
+              "  });",
+              "});",
+              "pm.test('Supplier B includes the shared Taj Hotel and Radison listings', function () {",
+              "  const names = offers.map((hotel) => hotel.name);",
+              "  pm.expect(names).to.include('Taj Hotel');",
+              "  pm.expect(names).to.include('Radison');",
+              "});"
+            ]
+          }
+        }]
+      }
+    }
+  ]
+}
